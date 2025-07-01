@@ -4,9 +4,9 @@ function C = los_mimo_capacity(H, P, N0, B)
     % 计算容量
     Nt = 2; % 发射天线数
     SNR = P/(B*N0); % 信噪比
-    gamma = SNR/Nt;
+    gam
     
     % 计算容量 C = B*log2(det(I + (P/BN0)*H*H^H))
     % C = B * real(log2(det(eye(Nt) + (SNR/Nt)*(H*H'))));
-    C = B * (log2(det(eye(Nt) + gamma*(H*H'))));
+    C = B * (log2(det(eye(Nt) + (SNR/Nt)*(H*H'))));
 end

@@ -7,11 +7,8 @@ function [C, p_opt, sigma2, mu, Ka] = water_filling_capacity_bisect(H, P, N0, B)
     Ka = max(sigma)/min(sigma); % 条件数，越小越好，最小是1
     % disp(Ka);
     sigma2 = sigma.^2;          % 奇异值平方，对应信道增益（特征值）
-    % sigma2
-    epsilon_sigma2 = 1e-14;
-    if abs(sigma2(1)-sigma2(2)) < epsilon_sigma2
-        fprintf('!!!equal!!!---sigma2(1)= %.2ef, fsigma2(2)=%.2ef \n', sigma2(1), sigma2(2));
-    end
+    if sigma2(1)==sigma2(2)
+        fprintf('sigma2(1)= %.6, fsigma2(2)=%.6f,')
     n = length(sigma2);
     
     % 关键修正：计算实际噪声功率
@@ -45,9 +42,6 @@ function [C, p_opt, sigma2, mu, Ka] = water_filling_capacity_bisect(H, P, N0, B)
     % 计算最优功率分配
     p_opt = max(0, mu - N_eq); % p_i = max(0, mu - N_eq) with N_eq = B*N0 / sigma_i^2
     epsilon = 1e-4;  % 误差容忍范围，可以根据实际调整大小
-    if p_opt(1) < 0 || p_opt(2) < 0
-        fprintf('P_opt(1) = %.4f, P_opt(2) = %.4f < 0\n', P_opt(1), P_opt(2));
-    end
     if abs(p_opt(1) + p_opt(2) - P) > epsilon
         fprintf('Warning: WF distribution ERROR!!!! ---P is %.4fW, but p_opt(1) = %.4f, p_opt(2) = %.4f\n', P, p_opt(1), p_opt(2));
     end

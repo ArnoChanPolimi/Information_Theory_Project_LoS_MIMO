@@ -7,26 +7,42 @@ function main()
     a_vals = linspace(0.5, 10, num_points);  % 天线间距从0.5到10m
     b_vals = a_vals;                         % 对称情况，b = a
     D_list = [10e3, 5e3, 2e3, 1e3, 500];            % 链路长度 m
-    Oscillation = 10;                               % Oscillation (m)
+    Oscillation = 1;                               % Oscillation (m)
     freq_list = [18e9, 38e9, 80e9, 115e9, 170e9];   % Hz
     f = freq_list(1);                  % 载波频率（18 GHz）
-    P = 1;                             % 发射功率Watt（归一化）
-    N0 = 4e-20;                        % 噪声功率W/Hz
-    B = 120e6;                         % 信道带宽Hz
-    
-    
-    plot_capacity_vs_spacing_symmetric_geometry(a_vals, num_points, D_list, freq_list, N0, B, P); % 计算对称情况下信道容量随a的变化
-    plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, freq_list, N0, B, P);
-    % 为每个频率分别画水填功率分配图
-    for idx = 1:length(freq_list)        
-        plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D_list(idx), freq_list(idx), N0, B, P);
-    end
+    P = 0.1;                             % 发射功率Watt（归一化）
+    N0 = 4e-21;                        % 噪声功率W/Hz (常温下是-174dBm)
+    B = 250e6;                         % 信道带宽Hz
 
-    plot_LoS_MIMO_capacity(a_vals, b_vals, num_points, D_list, freq_list, N0, B, P) % 计算不同a和b的情况下的信道容量
-    plot_LoS_MIMO_capacity_WF(a_vals, b_vals, num_points, D_list, freq_list, N0, B, P) % 计算不同a和b的情况下的信道容量- WF
+    %%
+  
+    % K取值为奇数，比如前5个奇数
+    K_values = [1, 3, 5, 7, 9, 11, 13, 15, 17];
+
+    a_values_test = sqrt((c/freq_list(3) * D_list(3) / 2) .* K_values);
     
-    plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
-    plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
+    fprintf('正交位置 a=b 时的天线间距（米）:\n');
+    for i = 1:length(a_values_test)
+        fprintf('K = %d, a = b = %.4f m\n', K_values(i), a_values_test(i));
+    end
+    %%
+    
+    
+    plot_capacity_vs_spacing_symmetric_geometry(a_vals, num_points, D_list(3), freq_list(3), N0, B, P); % 计算对称情况下信道容量随a的变化
+    plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list(3), freq_list(3), N0, B, P);
+    % % 为每个频率分别画水填功率分配图
+    % for idx = 1:length(freq_list)        
+    %     plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D_list(idx), freq_list(idx), N0, B, P);
+    % end
+    % 
+    % plot_Ka_vs_a(a_vals, num_points, D_list, freq_list, N0, B, P); % 画出不同频率下的条件数折线图2D
+    % plot_LoS_MIMO_capacity(a_vals, b_vals, num_points, D_list, freq_list, N0, B, P) % 计算不同a和b的情况下的信道容量
+    % plot_LoS_MIMO_capacity_WF(a_vals, b_vals, num_points, D_list, freq_list, N0, B, P) % 计算不同a和b的情况下的信道容量- WF
+    % 
+    % plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
+    % plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
+    % plot_capacity_heatmap_freq_vs_spacing(a_vals, num_points, D_list, freq_list, N0, B, P)
+    
     %%%%%%%%%%%%%%%% 下面的好像多余了 %%%%%%%%%%%%%%
     % plot_capacity_heatmaps_all_freqs(a_vals, b_vals, num_points, D_list, N0, B, P, freq_list);
     % plot_capacity_heatmaps_all_freqs_WF(a_vals, b_vals, num_points, D, N0, B, P, freq_list);
@@ -67,7 +83,6 @@ end
 function plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, freq_list, N0, B, P)
     fig = figure; % 新建图窗
     hold on; % 保持画布，绘制多条曲线
-
     for idx = 1:length(freq_list)
         f = freq_list(idx);
         capacity_results = zeros(num_points,1);
@@ -76,7 +91,7 @@ function plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, fr
             a = a_vals(i);
             b = a;
             H = create_H_matrix(a, b, D, f, 0);
-            [capacity_results(i), ~, ~] = water_filling_capacity_bisect(H, P, N0, B);
+            [capacity_results(i), ~, ~, ~, ~] = water_filling_capacity_bisect(H, P, N0, B);
         end
 
         plot(a_vals, capacity_results, 'LineWidth', 1.5, 'DisplayName', sprintf('Freq = %.0f GHz', f/1e9));
@@ -89,6 +104,37 @@ function plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, fr
     grid on;
     legend('show'); % 显示图例
     save_figure_custom(fig, 'Capacity_a_eq_b_WF', '~', B, '~');
+
+end
+
+%% 条件数 (Ka) 展示
+function plot_Ka_vs_a(a_vals, num_points, D_list, freq_list, N0, B, P)
+    % ====== 开始画图（Ka vs antenna spacing）======
+
+    for idx = 1:length(freq_list)
+        fig_Ka = figure;   
+        f = freq_list(idx);
+        D = D_list(idx);
+        for i = 1:num_points
+            a = a_vals(i);
+            b = a;
+            H = create_H_matrix(a, b, D, f, 0);
+            [~, ~, ~, ~, Ka(i, idx)] = water_filling_capacity_bisect(H, P, N0, B);
+        end
+
+        semilogy(a_vals, log2(Ka(:, idx)), 'LineWidth', 1.5, ...
+            'DisplayName', sprintf('Freq = %.1f GHz', freq_list(idx)/1e9));
+        % === 图形标签 ===
+        xlabel('Antenna Spacing a = b (m)', 'FontSize', 12);    % 横坐标
+        ylabel('Condition Number K_a (log2 scale)', 'FontSize', 12); % 纵坐标
+        title('Condition Number vs. Symmetric Antenna Spacing for LoS MIMO', 'FontSize', 13); % 标题
+        legend('show', 'Location', 'best');                      % 显示图例
+        grid on;
+        % ylim([0, 2]);  % 因为Ka≥1，所以下限设1
+        save_figure_custom(fig_Ka, 'Num_Condition', f, B, D);
+        
+    end
+
 end
 %% 单频率单图绘制功率分配 (only WF has this)
 function plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D, f, N0, B, P)
@@ -104,14 +150,14 @@ function plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D, f
         a = a_vals(i);
         b = b_vals(i);
         H = create_H_matrix(a, b, D, f, 0);
-        [~, p_opt, sigma2] = water_filling_capacity_bisect(H, P, N0, B);
+        [~, p_opt, sigma2, ~] = water_filling_capacity_bisect(H, P, N0, B);
         p_opt_all(:,i) = p_opt(:);
         sigma2_all(:,i) = sigma2(:);
     end
 
     % 画功率分配折线图
     for k = 1:2
-        plot(a_vals, p_opt_all(k,:), '-o', 'Color', colors(k,:), 'DisplayName', sprintf('Stream %d', k));
+        plot(a_vals, p_opt_all(k,:)/P, '-o', 'Color', colors(k,:), 'DisplayName', sprintf('Stream %d', k));
     end
 
     hold off;
@@ -120,7 +166,7 @@ function plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D, f
     title(sprintf('Water Filling Power Distribution @ %.0f GHz', f/1e9));
     legend('show');
     grid on;
-    ylim([0, max(p_opt_all(:))*1.1]); % 适当放大Y轴
+    ylim([0, 1]); % 
     save_figure_custom(fig, 'Distribution', f, B, D);
 end
 
@@ -163,7 +209,7 @@ function plot_LoS_MIMO_capacity(a_vals, b_vals, num_points, D_list, freq_list, N
 
     % 切换按钮
     uicontrol('Style', 'pushbutton', ...
-              'String', '切换 2D/3D', ...
+              'String', '2D/3D', ...
               'Position', [20 20 80 30], ...
               'Callback', @(src, event) toggleView());
 
@@ -204,7 +250,7 @@ function plot_LoS_MIMO_capacity_WF(a_vals, b_vals, num_points, D_list, freq_list
     num_cols = ceil(num_freqs / num_rows);
 
     % 创建布局
-    fig = figure('Name', '2x2 LoS MIMO 容量热图 多频率-WF', 'NumberTitle', 'off');
+    fig = figure('Name', '2x2 LoS MIMO Capacity Heatmap Multi-frequency - WF', 'NumberTitle', 'off');
     tlo = tiledlayout(num_rows, num_cols, 'Padding', 'compact', 'TileSpacing', 'compact');
 
     is3D = false;
@@ -212,7 +258,7 @@ function plot_LoS_MIMO_capacity_WF(a_vals, b_vals, num_points, D_list, freq_list
 
     % 切换按钮
     uicontrol('Style', 'pushbutton', ...
-              'String', '切换 2D/3D', ...
+              'String', '2D/3D', ...
               'Position', [20 20 80 30], ...
               'Callback', @(src, event) toggleView());
 
@@ -254,7 +300,7 @@ function plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, 
     end
 
     % 图像窗口和布局
-    fig = figure('Name', 'LoS MIMO 容量热图 - 天线移位 vs a', 'NumberTitle', 'off');
+    fig = figure('Name', 'LoS MIMO Capacity Heatmap: Antenna Shift vs. a', 'NumberTitle', 'off');
     num_rows = ceil(sqrt(num_freqs));
     num_cols = ceil(num_freqs / num_rows);
     tlo = tiledlayout(num_rows, num_cols, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -264,11 +310,11 @@ function plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, 
 
     % 切换按钮
     uicontrol('Style', 'pushbutton', ...
-              'String', '切换 2D/3D', ...
+              'String', '2D/3D', ...
               'Position', [20 20 80 30], ...
               'Callback', @(src, event) toggle_view());
 
-    sgtitle(sprintf('信道容量热图：a 和天线移位最大幅度 x = %.1f m 的影响 - 传统方法', Oscillation));
+    sgtitle(sprintf('Channel Capacity Heatmap: Impact of a and Antenna Displacement Max Amplitude x = %.1f m - Conventional Method', Oscillation));
 
     % 回调函数：切换视图
     function toggle_view()
@@ -293,7 +339,7 @@ function plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, 
             end
 
             xlabel('a = b (m)');
-            ylabel('RX天线1平移 x (m)');
+            ylabel('RX Antenna-1 Shift x (m)');
             title(freq_labels{idx});
             colorbar;
         end
@@ -331,7 +377,7 @@ function plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N
     end
 
     % 图像窗口和布局
-    fig = figure('Name', 'LoS MIMO 容量热图 - 天线移位 vs a - WF', 'NumberTitle', 'off');
+    fig = figure('Name', 'LoS MIMO Capacity Heatmap - Antenna Displacement vs a - WF', 'NumberTitle', 'off');
     num_rows = ceil(sqrt(num_freqs));
     num_cols = ceil(num_freqs / num_rows);
     tlo = tiledlayout(num_rows, num_cols, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -341,11 +387,11 @@ function plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N
 
     % 切换按钮
     uicontrol('Style', 'pushbutton', ...
-              'String', '切换 2D/3D', ...
+              'String', '2D/3D', ...
               'Position', [20 20 80 30], ...
               'Callback', @(src, event) toggle_view());
 
-    sgtitle(sprintf('信道容量热图：a 和天线移位最大幅度 x = %.1f m 的影响 - WF', Oscillation));
+    sgtitle(sprintf('Capacity (heatmap)：The impact of "a" and Oscillation x = %.1f m - WF', Oscillation));
 
     % 回调函数：切换视图
     function toggle_view()
@@ -370,7 +416,7 @@ function plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N
             end
 
             xlabel('a = b (m)');
-            ylabel('RX天线1平移 x (m)');
+            ylabel('RX1 moves x (m)');
             title(freq_labels{idx});
             colorbar;
         end
@@ -378,6 +424,37 @@ function plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N
     save_figure_custom(fig, 'WF_Capacity_vs_Oscillation', '~', '~', '~');
 end
 
+%% Capacity vs. freq
+function plot_capacity_heatmap_freq_vs_spacing(a_vals, num_points, D_list, freq_list, N0, B, P)
+% 绘制 LoS 2x2 MIMO 系统中频率 vs. 天线间距 下的信道容量热图
+% a_vals: 一组天线间距值 (a = b)
+% freq_list: 一组载波频率值
+% 其他参数与之前相同
+
+    num_f = length(freq_list);
+    capacity_map = zeros(num_a, num_f);
+
+    for i = 1:num_points
+        a = a_vals(i);
+        b = a; % 对称结构
+        for j = 1:num_f
+            f = freq_list(j);
+            H = create_H_matrix(a, b, D, f, 0);
+            [C, ~, ~, ~, ~] = water_filling_capacity_bisect(H, P, N0, B);
+            capacity_map(i, j) = C;
+        end
+    end
+
+    % 绘制热图
+    fig = figure;
+    imagesc(freq_list/1e9, a_vals, capacity_map); % 横轴频率 (GHz)，纵轴天线间距 (m)
+    colorbar;
+    xlabel('Carrier Frequency (GHz)', 'FontSize', 12);
+    ylabel('Antenna Spacing a = b (m)', 'FontSize', 12);
+    title('Capacity Heatmap vs. Frequency and Antenna Spacing', 'FontSize', 13);
+    set(gca, 'YDir', 'normal'); % 保持 a 从小到大向上画
+    save_figure_custom(fig, 'WF_Capacity_vs_freq_3D', '~', '~', '~');
+end
 
 
 
