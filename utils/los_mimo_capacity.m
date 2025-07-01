@@ -1,5 +1,6 @@
 %%% 计算LoS信道容量C %%%
-function C = los_mimo_capacity(H, P, N0, B)           
+% function C = los_mimo_capacity(H, energy, P, N0, B)    
+function C = los_mimo_capacity(H, P, N0, B)    
     % H = [1 0; 0 1]; % de-bug用途
     % 计算容量
     Nt = 2; % 发射天线数

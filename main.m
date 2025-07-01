@@ -3,10 +3,11 @@ function main()
     addpath('utils');
     % 参数设置
     c = 3e8;                                 % 光速
-    num_points = 1000;
+    num_points = 2000;
     a_vals = linspace(0.5, 10, num_points);  % 天线间距从0.5到10m
     b_vals = a_vals;                         % 对称情况，b = a
-    D_list = [10e3, 5e3, 2e3, 1e3, 500];            % 链路长度 m
+    % D_list = [10e3, 5e3, 2e3, 1e3, 500];            % 链路长度 m
+    D_list = [10e3, 5e3, 2000, 1e3, 500];            % 链路长度 m
     Oscillation = 1;                               % Oscillation (m)
     freq_list = [18e9, 38e9, 80e9, 115e9, 170e9];   % Hz
     f = freq_list(1);                  % 载波频率（18 GHz）
@@ -25,6 +26,30 @@ function main()
     for i = 1:length(a_values_test)
         fprintf('K = %d, a = b = %.4f m\n', K_values(i), a_values_test(i));
     end
+
+    %%%%
+    % % 在正交位置测试
+    % d_orth = sqrt(c/freq_list(3) * D_list(3) / 2);
+    % H_orth = create_H_matrix(d_orth, d_orth, D_list(3), freq_list(3), 0);
+    % 
+    % % 1. 检查H*H'是否对角
+    % HH = H_orth * H_orth';
+    % disp('H*H^H = ');
+    % disp(HH);
+    % % 2. 检查奇异值
+    % [U,S_test,V] = svd(H_orth);
+    % disp('奇异值 = ');
+    % disp(diag(S_test));
+    % 
+    % % 3. 计算理论特征值
+    % % 对于正交信道，特征值应相等
+    % expected_eig = mean(diag(HH));
+    % disp('理论特征值 = ');
+    % disp([expected_eig, expected_eig]);
+    % C_wf = water_filling_capacity_bisect(H_orth, energy, P, N0, B);
+    % C_trad = los_mimo_capacity(H_orth, energy, P, N0, B);
+    % fprintf('注水法容量: %.4f\n', C_wf);
+    % fprintf('传统法容量: %.4f\n', C_trad);%%%%
     %%
     
     
@@ -93,7 +118,6 @@ function plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, fr
             H = create_H_matrix(a, b, D, f, 0);
             [capacity_results(i), ~, ~, ~, ~] = water_filling_capacity_bisect(H, P, N0, B);
         end
-
         plot(a_vals, capacity_results, 'LineWidth', 1.5, 'DisplayName', sprintf('Freq = %.0f GHz', f/1e9));
     end
 
