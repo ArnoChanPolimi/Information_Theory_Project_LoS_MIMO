@@ -5,14 +5,18 @@ This MATLAB project implements simulations based on the Line-of-Sight (LoS) MIMO
 The project encapsulates key functions such as channel modeling and water-filling algorithm to compute channel capacity, enabling easy reproduction and extension of the results.
 
 ## Directory Structure
+```
 Information_Theory_Project_LoS_MIMO/
 ├── main.m % Main script to run the simulation
-├── utils/ % Utility functions folder including channel model, water-filling algorithm, etc.
-│ ├── water_filling.m
-│ ├── channel_model.m
-│ └── ... % Other helper functions
-├── results/ % (Optional) Folder to store simulation results and plots
+├── utils/ % Utility functions folder
+│ ├── los_mimo_capacity.m % Computes LoS MIMO channel capacity
+│ ├── water_filling_capacity_bisect.m % Implements water-filling capacity optimization
+│ ├── create_H_matrix.m % Generates channel matrix H based on system parameters
+│ ├── save_figure_custom.m % Customized function to save figures
+│ └── draw.m % Custom plotting functions
+├── results/ % Optional folder to save generated figures and data
 └── README.md % This documentation file
+```
 
 ## Code Framework
 - **main.m**: The entry point of the project. It initializes parameters, calls functions from `utils`, runs the simulation pipeline, and outputs results.
