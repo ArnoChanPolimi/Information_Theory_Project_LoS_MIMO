@@ -7,15 +7,16 @@ The project encapsulates key functions such as channel modeling and water-fillin
 ## Directory Structure
 ```
 Information_Theory_Project_LoS_MIMO/
-├── main.m % Main script to run the simulation
-├── utils/ % Utility functions folder
-│ ├── los_mimo_capacity.m % Computes LoS MIMO channel capacity
-│ ├── water_filling_capacity_bisect.m % Implements water-filling capacity optimization
-│ ├── create_H_matrix.m % Generates channel matrix H based on system parameters
-│ ├── save_figure_custom.m % Customized function to save figures
-│ └── draw.m % Custom plotting functions
-├── results/ % Optional folder to save generated figures and data
-└── README.md % This documentation file
+├── main.m                            % Main script to run the simulation
+├── utils/                            % Utility functions folder
+│   ├── create_H_matrix.m            % Generates channel matrix H based on system parameters
+│   ├── los_mimo_capacity.m          % Computes LoS MIMO channel capacity (equal power allocation)
+│   ├── water_filling_capacity_bisect.m % Implements water-filling capacity optimization
+│   ├── compute_singular_values.m    % Computes and displays singular values and related diagnostics
+│   ├── draw.m                       % Custom plotting functions
+│   └── save_figure_custom.m         % Customized function to save figures
+├── results/                          % Optional folder to save generated figures and data
+└── README.md                         % This documentation file
 ```
 ### Code Framework
 
@@ -24,6 +25,7 @@ Information_Theory_Project_LoS_MIMO/
   * Channel matrix generation (`create_H_matrix.m`)
   * LoS MIMO capacity calculation with **traditional equal power allocation** (`los_mimo_capacity.m`)
   * Water-filling power allocation algorithm (`water_filling_capacity_bisect.m`)
+  * Singular value analysis and diagnostics: (`compute_singular_values.m`)
   * Custom plotting functions (`draw.m`)
   * Custom figure saving function (`save_figure_custom.m`)
 * The project follows a modular design for clarity and ease of maintenance and extension.
