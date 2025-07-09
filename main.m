@@ -1,4 +1,5 @@
-%%%%%%%%% main %%%%%%%%%%%%
+%%%%%%%%% Information Theory Project -- Nokia: LoS of MIMO %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%
 function main()
     addpath('utils');
     % 参数设置
@@ -6,12 +7,12 @@ function main()
     num_points = 2000;
     a_vals = linspace(0.5, 10, num_points);  % 天线间距从0.5到10m
     b_vals = a_vals;                         % 对称情况，b = a
-    % D_list = [10e3, 5e3, 2e3, 1e3, 500];            % 链路长度 m
-    D_list = [10e3, 5e3, 2000, 1e3, 500];            % 链路长度 m
+    D_list = [10e3, 5e3, 2e3, 1e3, 500];            % 链路长度 m
+    % D_list = [10e3, 5e3, 2000, 1e3, 500];            % 链路长度 m
     Oscillation = 1;                               % Oscillation (m)
     freq_list = [18e9, 38e9, 80e9, 115e9, 170e9];   % Hz
     f = freq_list(1);                  % 载波频率（18 GHz）
-    P = 0.1;                             % 发射功率Watt（归一化）
+    P = 1;                             % 发射功率Watt（归一化）
     N0 = 4e-21;                        % 噪声功率W/Hz (常温下是-174dBm)
     B = 250e6;                         % 信道带宽Hz
 
@@ -53,8 +54,9 @@ function main()
     %%
     
     
-    plot_capacity_vs_spacing_symmetric_geometry(a_vals, num_points, D_list(3), freq_list(3), N0, B, P); % 计算对称情况下信道容量随a的变化
-    plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list(3), freq_list(3), N0, B, P);
+    % plot_capacity_vs_spacing_symmetric_geometry(a_vals, num_points, D_list, freq_list, N0, B, P); % 计算对称情况下信道容量随a的变化
+    % plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, freq_list, N0, B, P);
+    plot_capacity_vs_symmetric_water_filling_and_Traditional(a_vals, num_points, D_list, freq_list, N0, B, P);
     % % 为每个频率分别画水填功率分配图
     % for idx = 1:length(freq_list)        
     %     plot_power_distribution_of_WF_per_freq(a_vals, b_vals, num_points, D_list(idx), freq_list(idx), N0, B, P);
@@ -67,7 +69,7 @@ function main()
     % plot_los_capacity_Oscillations_heatmap(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
     % plot_los_capacity_Oscillations_heatmap_WF(a_vals, num_points, D_list, N0, B, P, freq_list, Oscillation);
     % plot_capacity_heatmap_freq_vs_spacing(a_vals, num_points, D_list, freq_list, N0, B, P)
-    
+    % 
     %%%%%%%%%%%%%%%% 下面的好像多余了 %%%%%%%%%%%%%%
     % plot_capacity_heatmaps_all_freqs(a_vals, b_vals, num_points, D_list, N0, B, P, freq_list);
     % plot_capacity_heatmaps_all_freqs_WF(a_vals, b_vals, num_points, D, N0, B, P, freq_list);
@@ -128,6 +130,35 @@ function plot_capacity_vs_symmetric_water_filling(a_vals, num_points, D_list, fr
     grid on;
     legend('show'); % 显示图例
     save_figure_custom(fig, 'Capacity_a_eq_b_WF', '~', B, '~');
+
+end
+
+%% 把WF和传统方法合一起画一个图，单频率的信道容(a=b)
+function plot_capacity_vs_symmetric_water_filling_and_Traditional(a_vals, num_points, D_list, freq_list, N0, B, P)
+    fig = figure; % 新建图窗
+    hold on; % 保持画布，绘制多条曲线
+
+    f = freq_list(3);
+    capacity_results_WF = zeros(num_points,1);
+    capacity_results_Trad = zeros(num_points,1);
+    D = D_list(3);
+    for i = 1:num_points
+        a = a_vals(i);
+        b = a;
+        H = create_H_matrix(a, b, D, f, 0);
+        [capacity_results_WF(i), ~, ~, ~, ~] = water_filling_capacity_bisect(H, P, N0, B);
+        capacity_results_Trad(i)= los_mimo_capacity(H, P, N0, B);
+    end
+    plot(a_vals, capacity_results_WF, 'LineWidth', 1.5, 'DisplayName', sprintf('WF: Freq = %.0f GHz', f/1e9));
+    plot(a_vals, capacity_results_Trad, 'LineWidth', 1.5, 'LineStyle', '--','DisplayName', sprintf('Trad: Freq = %.0f GHz', f/1e9));
+
+    hold off;
+    xlabel('Antenna Spacing a = b (m)');
+    ylabel('Capacity (bits/s)');
+    title('2x2 LoS MIMO Capacity vs Symmetric Antenna Spacing for Multiple Frequencies-Water Filling and Tradional');
+    grid on;
+    legend('show'); % 显示图例
+    save_figure_custom(fig, 'Capacity_a_eq_b_WFandTrad', '~', B, '~');
 
 end
 

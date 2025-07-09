@@ -1,13 +1,14 @@
-%%归一化后，信道矩阵的总能量（所有元素平方和）为1。
+%%%%%%% This function is currently unused %%%%%%%%%%%%%%%%%%
+%% After normalization, the total energy of the channel matrix (sum of squares of all elements) is 1.
 function [H_norm, energy] = normalize_channel(H_raw)
-    % 计算信道矩阵的Frobenius范数平方（总能量）
+    % Calculate the Frobenius norm squared (total energy) of the channel matrix
     energy = trace(H_raw * H_raw');
     
-    % 归一化
+    % Normalize the channel matrix
     H_norm = H_raw / sqrt(energy);
     
-    % 验证归一化后的能量
+    % Verify normalized energy
     energy_norm = trace(H_norm * H_norm');
-    % fprintf('归一化前信道能量: %.6e\n', energy);
-    % fprintf('归一化后信道能量: %.6f\n', energy_norm);
+    % fprintf('Channel energy before normalization: %.6e\n', energy);
+    % fprintf('Channel energy after normalization: %.6f\n', energy_norm);
 end

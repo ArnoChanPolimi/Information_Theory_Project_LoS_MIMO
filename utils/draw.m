@@ -1,8 +1,8 @@
-% 图像绘制函数（根据 is3D 切换）
+% Plotting function (switches based on is3D)
 function draw(a_vals, b_vals, freq_list, freq_labels, Capacity_all, is3D)
     for k = 1:length(freq_list)
         nexttile(k);
-        cla; % 清除当前tile内容
+        cla; % Clear current tile content
         C = Capacity_all{k};
     
         if is3D

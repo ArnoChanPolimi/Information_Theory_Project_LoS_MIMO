@@ -17,14 +17,16 @@ Information_Theory_Project_LoS_MIMO/
 ├── results/ % Optional folder to save generated figures and data
 └── README.md % This documentation file
 ```
+### Code Framework
 
-## Code Framework
-- **main.m**: The entry point of the project. It initializes parameters, calls functions from `utils`, runs the simulation pipeline, and outputs results.
-- **utils/**: Contains all auxiliary functions, including:
-  - Channel matrix generation (`channel_model.m`)
-  - Water-filling power allocation algorithm (`water_filling.m`)
-  - Other mathematical helper functions
-- The project follows a modular design for clarity and ease of maintenance and extension.
+* **main.m**: The main entry point of the project. It initializes parameters, calls functions in `utils/`, runs the simulation pipeline, and outputs results.
+* **utils/**: Contains all auxiliary functions, including:
+  * Channel matrix generation (`create_H_matrix.m`)
+  * LoS MIMO capacity calculation with **traditional equal power allocation** (`los_mimo_capacity.m`)
+  * Water-filling power allocation algorithm (`water_filling_capacity_bisect.m`)
+  * Custom plotting functions (`draw.m`)
+  * Custom figure saving function (`save_figure_custom.m`)
+* The project follows a modular design for clarity and ease of maintenance and extension.
 
 ### Data Flow Overview
 Parameter setup → Channel matrix generation → Capacity computation → Result output and visualization
